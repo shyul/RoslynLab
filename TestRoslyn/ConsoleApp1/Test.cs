@@ -65,6 +65,41 @@ namespace TestRoslyn
 
     }
 
+    public class CSharpScriptEngine
+    {
+        private static ScriptState scriptState = null;
+        public static object Execute(string code)
+        {
+            scriptState = scriptState == null ? CSharpScript.RunAsync(code).Result : scriptState.ContinueWithAsync(code).Result;
+            if (scriptState.ReturnValue != null && !string.IsNullOrEmpty(scriptState.ReturnValue.ToString()))
+                return scriptState.ReturnValue;
+            return null;
+        }
+    }
 
+    //This code utilizes the Microsoft.CodeAnalysis.CSharp.Scripting package available at NuGet.
+    //The `CSharpScript.RunAsync` method runs a C# script while `scriptState.ContinueWithAsync` continues the previously submitted code with the current submitted one.
+    //With this in place we can try out the script engine:
 
+    class Program2
+    {
+        static void Main(string[] args)
+        {
+            CSharpScriptEngine.Execute(
+                //This could be code submitted from the editor
+                @"
+            public class ScriptedClass
+            {
+                public String HelloWorld {get;set;}
+                public ScriptedClass()
+                {
+                    HelloWorld = ""Hello Roslyn!"";
+                }
+            }");
+            //And this from the REPL
+            Console.WriteLine(CSharpScriptEngine.Execute("new ScriptedClass().HelloWorld"));
+            Console.ReadKey();
+        }
+    }
+    //Output: "Hello Roslyn!"
 }

@@ -17,7 +17,7 @@ namespace TestRoslyn
 
 
             Console.WriteLine("\n\nJob Done, Press any key to exit.");
-            Console.ReadLine();
+            //Console.ReadLine();
             Console.ReadKey();
             //while (true) ;
         }

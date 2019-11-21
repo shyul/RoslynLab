@@ -49,8 +49,8 @@ namespace TestRoslyn
 
                 // https://github.com/dotnet/roslyn/wiki/Scripting-API-Samples
 
-                var result2 = CSharpScript.EvaluateAsync<int>(script, null, new ScriptHost { Number = 5 }).Result;
-                var script = CSharpScript.Create<int>("X*Y", globalsType: typeof(Globals));
+                //var result2 = CSharpScript.EvaluateAsync<int>(script, null, new ScriptHost { Number = 5 }).Result;
+                //var script = CSharpScript.Create<int>("X*Y", globalsType: typeof(Globals));
 
                 //string scp = "using System; using TestRoslyn;";
                 //await CSharpScript.EvaluateAsync(scp + "SampleTest pf = new SampleTest(12, 56); " + "Console.WriteLine(pf.ToString()); ", ScriptOptions.Default.WithReferences(typeof(SampleTest).Assembly));//, ScriptOptions.Default.WithImports("Xu.dll"));

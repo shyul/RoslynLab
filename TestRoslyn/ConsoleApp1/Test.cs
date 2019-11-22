@@ -26,24 +26,59 @@ namespace TestRoslyn
         public override string ToString() => (X + Y).ToString();
     }
 
+    public class ScriptHost
+    {
+        public int Number { get; set; }
+    }
+
     public static class Test
     {
         public static async Task SimpleAsync()
         {
+            var scriptOptions = ScriptOptions.Default
+                .AddImports("System.Xml", "System")
+                .WithReferences(Assembly.LoadFrom("Xu.dll"));
+
+            string scp = "using System; using Xu;";
+
+            int iterationCount = 20;
+
+            var script = CSharpScript.Create<int>(scp + "Period pf = new Period(DateTime.Now.AddDays(-Number), DateTime.Now); " + "Console.WriteLine(pf.ToString()); ", scriptOptions, globalsType: typeof(ScriptHost));
+            script.Compile();
+            var runner = script.CreateDelegate();
+
+            //Compilation gives access to the full set of Roslyn APIs.
+            Compilation compilation = script.GetCompilation();
+
+            /*
+            foreach (var variable in state.Variables)
+                Console.WriteLine($"{variable.Name} = {variable.Value} of type {variable.Type}");
+                */
+            DateTime startTime = DateTime.Now;
             try
             {
-                int result = await CSharpScript.EvaluateAsync<int>("1 + 2");
+               // int result = await CSharpScript.EvaluateAsync<int>("1 + 2");
 
-                Console.WriteLine(result);
+               // Console.WriteLine(result);
                 //SampleTest pf = new SampleTest(12, 56); Console.WriteLine(pf.ToString());
                 //Period pf = new Period(DateTime.Now.AddDays(-1), DateTime.Now);
                 //Console.WriteLine(pf.ToString());
 
-                string scp = "using System; using Xu;";
+
+                for(int i = 0; i < iterationCount; i++) 
+                {
+                    //await CSharpScript.EvaluateAsync(scp + "Period pf = new Period(DateTime.Now.AddDays(-Number), DateTime.Now); " + "Console.WriteLine(pf.ToString()); ", scriptOptions, new ScriptHost { Number = i }); // Assembly.GetExecutingAssembly()
+                    var state = await script.RunAsync(new ScriptHost { Number = i });
+
+                    //foreach (var variable in state.Variables)
+                        //Console.WriteLine($"{variable.Name} = {variable.Value} of type {variable.Type}");
+                    //await runner(new ScriptHost { Number = i });
+                }
+
+
                 //await CSharpScript.EvaluateAsync("using System; Console.WriteLine(\"Hello world!\");");
                 //await CSharpScript.EvaluateAsync(scp + "Period pf = new Period(DateTime.Now.AddDays(-1), DateTime.Now); " + "Console.WriteLine(pf.ToString()); ", ScriptOptions.Default.WithReferences(typeof(Period).Assembly));
                 //await CSharpScript.EvaluateAsync(scp + "Period pf = new Period(DateTime.Now.AddDays(-1), DateTime.Now); " + "Console.WriteLine(pf.ToString()); ", ScriptOptions.Default.WithImports("Xu"));
-                await CSharpScript.EvaluateAsync(scp + "Period pf = new Period(DateTime.Now.AddDays(-1), DateTime.Now); " + "Console.WriteLine(pf.ToString()); ", ScriptOptions.Default.WithReferences(Assembly.LoadFrom("Xu.dll"))); // Assembly.GetExecutingAssembly()
 
                 // https://blogs.msdn.microsoft.com/cdndevs/2015/12/01/adding-c-scripting-to-your-development-arsenal-part-1/
 
@@ -61,6 +96,10 @@ namespace TestRoslyn
             {
                 Console.WriteLine(string.Join(Environment.NewLine, e.Diagnostics));
             }
+
+            TimeSpan sp = DateTime.Now - startTime;
+
+            Console.WriteLine("Average execution time is " + sp.TotalSeconds / iterationCount);
         }
 
     }
@@ -83,7 +122,7 @@ namespace TestRoslyn
 
     class Program2
     {
-        static void Main(string[] args)
+        static void Main2s(string[] args)
         {
             CSharpScriptEngine.Execute(
                 //This could be code submitted from the editor
